@@ -2,7 +2,7 @@
 def get_neighbors(node, all_nodes):
     directions = [[0, 1], [1, 0], [0, -1], [-1, 0],
                   [1, 1], [1, -1], [-1, 1], [-1, -1]]
-    distances = [1, 1, 1, 1, 1.41, 1.41, 1.41, 1.41]
+    distances = [10, 10, 10, 10, 14, 14, 14, 14]
     neighbors = []
     costs = []
 
