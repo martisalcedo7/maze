@@ -1,7 +1,7 @@
 all: main
 
 main: main.c
-	gcc main.c -o main 
+	gcc -O3 main.c -o main 
 
 clean:
 	rm -f main
