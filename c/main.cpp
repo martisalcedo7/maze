@@ -12,7 +12,7 @@
 #define O 2
 #define T 3
 
-std::vector<std::vector<uint8_t>> parseCSV() {
+std::vector<std::vector<uint8_t>> parse_map() {
   std::ifstream data("../map.csv");
   std::string line;
   std::vector<std::vector<uint8_t>> parsedCsv;
@@ -30,7 +30,7 @@ std::vector<std::vector<uint8_t>> parseCSV() {
   return parsedCsv;
 }
 
-const std::vector<std::vector<uint8_t>> map = parseCSV();
+const std::vector<std::vector<uint8_t>> map = parse_map();
 
 typedef struct Point {
   int32_t r;

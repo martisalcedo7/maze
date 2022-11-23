@@ -1,4 +1,3 @@
-from tkinter import filedialog
 import numpy as np
 import cv2 as cv
 from array2header import array_to_header
@@ -79,6 +78,7 @@ def image_to_array(path):
 
 if __name__ == "__main__":
     import tkinter as tk
+    from tkinter import filedialog
     root = tk.Tk()
     root.withdraw()
     file_path = filedialog.askopenfilename()
