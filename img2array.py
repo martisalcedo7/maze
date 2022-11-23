@@ -1,49 +1,87 @@
+from tkinter import filedialog
 import numpy as np
-from copy import deepcopy
 import cv2 as cv
-from PIL import Image
+from array2header import array_to_header
+from matplotlib import pyplot as plt
+import csv
+
+selector = True
+origin = []
+target = []
 
 
-def normalize(array):
-    array = (array / array.max())
-    array = 1 - array
-    return array
+def onclick(event):
+    if event.xdata is None or event.ydata is None:
+        return
+    c = int(event.xdata)
+    r = int(event.ydata)
+    global selector
+    global origin
+    global target
+    if selector:
+        origin = [r, c]
+        print('Origin: r = %d, c = %d' % (r, c))
+    else:
+        target = [r, c]
+        print('Target: r = %d, c = %d' % (r, c))
+    selector = not selector
 
 
-def map_from_image(path):
-    im = Image.open("test.bmp").convert("L")
-    map = np.array(im)
-    map = normalize(map)
+def image_to_array(path):
+    # Read image in BGR format
+    img = cv.imread(path)
+    # Convert image into grayscale
+    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    # Filter image
+    gray = cv.GaussianBlur(gray, (3, 3), 0)
+    # Scale image
+    # scale_percent = 90  # percent of original size
+    # width = int(img.shape[1] * scale_percent / 100)
+    # height = int(img.shape[0] * scale_percent / 100)
+    # dim = (width, height)
+    # gray = cv.resize(gray, dim, interpolation=3)
+
+    # Binarize image
+    gray = cv.adaptiveThreshold(
+        gray, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 25, 20)
+    # Scales, calculates absolute values, and converts the result to 8-bit.
+    gray = cv.convertScaleAbs(gray)
+
+    # Create a figure and a set of subplots
+    fig, ax = plt.subplots()
+    ax.imshow(gray, cmap='gray', vmin=0, vmax=255)
+    # Bind the button_press_event with the onclick() method
+    fig.canvas.mpl_connect('button_press_event', onclick)
+    # Display the plot
+    plt.show()
+    # Save processed image
+    cv.imwrite("image.png", gray)
+
+    # Normalize it to zeros and ones (255 -> 1)
+    map = (np.max(gray) - gray) / np.max(gray)
     map = map.astype(np.uint8)
-    # reads an image in the BGR format
-    # img = cv.imread("test_2.png")
-    # img_blue, img_green, img_red = cv.split(img)
-    # gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    # print(gray)
-    # gray = normalize(gray)
-    # r, c = gray.shape
-    # left = gray[:, 0:(int(c/2)-1)]
-    # right = gray[:, (c-int(c/2)):-1]
-    # gray = np.where(gray > 0.5, 1.0, 0.0)
-    # print(gray)
-    # cv.imshow("Display window", left)
-    # k = cv.waitKey(0)
-    # cv.imshow("Display window", right)
-    # k = cv.waitKey(0)
-    # img = Image.fromarray(map_green, 'L')
-    # img.show()
-    # img = Image.fromarray(map_blue, 'L')
-    # img.show()
 
-    # t = 0.5
-    # map = map < t
-    # map = np.where(map < t, 1, 0)
-    # # img = Image.fromarray(map, 'L')
-    # # img.show()
-    map[0, -1] = 3
-    map[-1, 0] = 2
+    # Write the origin and the target
+    global origin
+    global target
+
+    map[origin[0], origin[1]] = 2
+    map[target[0], target[1]] = 3
+    # map[1733, 55] = 2
+    # map[46, 1013] = 3
+
+    with open("map.csv", "w") as my_csv:
+        csvWriter = csv.writer(my_csv, delimiter=',')
+        csvWriter.writerows(map)
+
     return map
 
 
 if __name__ == "__main__":
-    map = map_from_image("test.bmp")
+    import tkinter as tk
+    root = tk.Tk()
+    root.withdraw()
+    file_path = filedialog.askopenfilename()
+    root.destroy()
+    map = image_to_array(file_path)
+    array_to_header(map, "c/map.h")
