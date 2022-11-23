@@ -1,7 +1,36 @@
 #include "map.h"
+#include <array>
+#include <fstream>
 #include <iostream>
 #include <limits.h>
+#include <sstream>
+#include <string>
 #include <vector>
+
+#define E 0
+#define W 1
+#define O 2
+#define T 3
+
+std::vector<std::vector<uint8_t>> parseCSV() {
+  std::ifstream data("../map.csv");
+  std::string line;
+  std::vector<std::vector<uint8_t>> parsedCsv;
+  while (std::getline(data, line)) {
+    std::stringstream lineStream(line);
+    std::string cell;
+    std::vector<uint8_t> parsedRow;
+    while (std::getline(lineStream, cell, ',')) {
+      parsedRow.push_back(static_cast<uint8_t>(stoi(cell)));
+    }
+
+    parsedCsv.push_back(parsedRow);
+  }
+
+  return parsedCsv;
+}
+
+const std::vector<std::vector<uint8_t>> map = parseCSV();
 
 typedef struct Point {
   int32_t r;
@@ -26,7 +55,6 @@ Point unravel(const int32_t pos) {
 uint32_t distance_h[MAP_ROWS * MAP_COLUMNS];
 uint32_t distance[MAP_ROWS * MAP_COLUMNS];
 uint32_t previous[MAP_ROWS * MAP_COLUMNS];
-Node nodes[MAP_ROWS * MAP_COLUMNS];
 
 const int8_t directions[8][2] = {{0, 1}, {1, 0},  {0, -1}, {-1, 0},
                                  {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
@@ -39,28 +67,16 @@ int main() {
   uint32_t origin;
   uint32_t target;
 
-  uint32_t nodes_to_visit = 0;
-
-  // Fill array of nodes nodes and find target and origin
-  // Set the wall nodes as visited
+  // Fill arrays and find target and origin
   uint32_t counter = 0;
   for (uint32_t r = 0; r < MAP_ROWS; ++r) {
     for (uint32_t c = 0; c < MAP_COLUMNS; ++c) {
-      uint8_t type = map[r][c];
-      if (type == O) {
+      if (map[r][c] == O) {
         origin = counter;
       }
-      if (type == T) {
+      if (map[r][c] == T) {
         target = counter;
       }
-      if (type != W) {
-        nodes_to_visit++;
-      }
-      Point point;
-      point.r = r;
-      point.c = c;
-      Node node = {.point = point, .type = type};
-      nodes[counter] = node;
       previous[counter] = 0;
       distance[counter] = UINT32_MAX;
       distance_h[counter] = UINT32_MAX;
@@ -78,65 +94,61 @@ int main() {
 
   // Loop for the algorithm
   while (1) {
-    // Find unvisited node with the shortest distance
-    // Detect if there is no mode nodes to visit
+
+    // Detect if there is no more nodes to visit
     if (visit.empty()) {
       std::cout << "Target not found\n";
       break;
     }
 
-    uint32_t unvisited_nodes = 0;
-    Node closest_node;
-    uint32_t closest_node_idx;
+    // Find unvisited node with the shortest distance
+    uint32_t closest_node_idx = 0;
     uint32_t min_dist = UINT32_MAX;
     uint32_t index = 0;
     for (uint32_t i = 0; i < visit.size(); ++i) {
-      uint32_t dist;
-      dist = distance_h[visit[i]];
+      uint32_t dist = distance_h[visit[i]];
       if (dist < min_dist) {
         min_dist = dist;
-        closest_node = nodes[visit[i]];
         closest_node_idx = visit[i];
         index = i;
       }
     }
 
+    // Detect if Target has been reached
     if (closest_node_idx == target) {
       target_found = true;
       std::cout << "Target found\n";
       break;
     }
-    // Set the selected node as visited
+
+    // Remove selected node from nodes to visit
     visit.erase(visit.begin() + index);
 
     // Get neighbors
     for (uint8_t i = 0; i < 8; ++i) {
-      int32_t r = closest_node.point.r + directions[i][0];
-      int32_t c = closest_node.point.c + directions[i][1];
+      Point node = unravel(closest_node_idx);
+      int32_t r = node.r + directions[i][0];
+      int32_t c = node.c + directions[i][1];
       // Check if neighbor is valid
-      if (r >= 0 && r < MAP_ROWS && c >= 0 && c < MAP_COLUMNS) {
-        // printf("******\nCoordinates: %i, %i\n", r, c);
-        Point point = {.r = r, .c = c};
-        uint32_t pos = ravel(point);
-        Node node = nodes[pos];
-        // printf("Type: %i\n", node.type);
-        if (node.type != W) {
-          uint32_t new_dist = distance[closest_node_idx] + costs[i];
-          // printf("Distance: %i\n", distance[pos]);
-          if (new_dist < distance[pos]) {
-            distance[pos] = new_dist;
-            previous[pos] = closest_node_idx;
-            if (a_star) {
-              distance_h[pos] = new_dist + labs(r - unravel(target).r) +
-                                labs(c - unravel(target).c);
-            }
-            visit.push_back(pos);
-            // printf("New_dist: %i\n", distance[pos]);
-          }
+      if (r < 0 || r >= MAP_ROWS || c < 0 || c >= MAP_COLUMNS ||
+          map[r][c] == W) {
+        continue;
+      }
+
+      Point neighbor = {.r = r, .c = c};
+      uint32_t neighbor_idx = ravel(neighbor);
+      uint32_t new_dist = distance[closest_node_idx] + costs[i];
+      if (new_dist < distance[neighbor_idx]) {
+        distance[neighbor_idx] = new_dist;
+        previous[neighbor_idx] = closest_node_idx;
+        if (a_star) {
+          distance_h[neighbor_idx] = new_dist + labs(r - unravel(target).r) +
+                                     labs(c - unravel(target).c);
         }
+        // Add neighbor to the nodes to visit
+        visit.push_back(neighbor_idx);
       }
     }
-    // printf("-------------\n");
   }
 
   if (!target_found) {
@@ -146,18 +158,16 @@ int main() {
   FILE *fptr;
 
   // use appropriate location if you are using MacOS or Linux
-  fptr = fopen("/home/ms/Desktop/maze-main/c/result.txt", "w");
+  fptr = fopen("result.csv", "w");
 
   if (fptr == NULL) {
-    printf("Error!");
+    printf("Error creating result file!");
     exit(1);
   }
 
   uint32_t prev_node = previous[target];
   while (prev_node != origin) {
-    // printf("%i -> (%i,%i)\n", prev_node, unravel(prev_node).r,
-    //        unravel(prev_node).c);
-    fprintf(fptr, "[%i,%i]\n", unravel(prev_node).r, unravel(prev_node).c);
+    fprintf(fptr, "%i,%i\n", unravel(prev_node).r, unravel(prev_node).c);
     prev_node = previous[prev_node];
   }
   fclose(fptr);
