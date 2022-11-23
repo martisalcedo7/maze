@@ -30,28 +30,24 @@ def map_from_image(path):
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     # Filter image
     gray = cv.GaussianBlur(gray, (3, 3), 0)
-    # Get image edges
-    # ddepth = cv.CV_8U
-    # kernel_size = 9
-    # gray = cv.Laplacian(gray, ddepth, ksize=kernel_size)
-    # Reverse image
-    # gray = np.max(gray) - gray
     # Scale image
-    scale_percent = 50  # percent of original size
-    width = int(img.shape[1] * scale_percent / 100)
-    height = int(img.shape[0] * scale_percent / 100)
-    dim = (width, height)
-    gray = cv.resize(gray, dim, interpolation=3)
+    # scale_percent = 90  # percent of original size
+    # width = int(img.shape[1] * scale_percent / 100)
+    # height = int(img.shape[0] * scale_percent / 100)
+    # dim = (width, height)
+    # gray = cv.resize(gray, dim, interpolation=3)
+
     # Binarize image
-    # ret, gray = cv.threshold(gray, 150, 255, cv.THRESH_BINARY)
     gray = cv.adaptiveThreshold(
-        gray, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2)
+        gray, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 25, 20)
 
     gray = cv.convertScaleAbs(gray)
 
     cv.imshow("Display window", gray)
     cv.setMouseCallback("Display window", onMouse)
-    cv.waitKey(0)
+    k = cv.waitKey(0)
+    if k == ord("s"):
+        cv.imwrite("image.png", gray)
 
     plt.imshow(gray, cmap='gray', vmin=0, vmax=255)
     plt.xticks([]), plt.yticks([])
@@ -69,17 +65,17 @@ def map_from_image(path):
     # map = np.where(map < t, 1, 0)
     # # img = Image.fromarray(map, 'L')
     # # img.show()
-    # map[1720, 50] = 2
-    # map[40, 1010] = 3
-    global origin
-    global target
-    map[origin[0], origin[1]] = 2
-    map[target[0], target[1]] = 3
+    map[1722, 44] = 2
+    map[41, 1008] = 3
+    # global origin
+    # global target
+    # map[origin[0], origin[1]] = 2
+    # map[target[0], target[1]] = 3
     return map
 
 
 if __name__ == "__main__":
-    map = map_from_image("test_4.png")
+    map = map_from_image("test_2.png")
     # print(map)
     plt.imshow(map, cmap='gray', vmin=0, vmax=1)
     plt.xticks([]), plt.yticks([])

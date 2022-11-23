@@ -9,7 +9,7 @@ import cv2 as cv
 # map = map_from_image("test.bmp")
 
 from img2array_copy import map_from_image
-map = map_from_image("test_2.png")
+map = map_from_image("test_4.png")
 
 map_copy = deepcopy(map)
 map_copy = np.where(map_copy == 1, 0, 255)
