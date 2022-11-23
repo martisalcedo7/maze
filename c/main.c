@@ -17,6 +17,12 @@ typedef struct Node {
   bool visited;
 } Node;
 
+// typedef struct VNode {
+//   Point point;
+//   uint8_t type;
+//   bool visited;
+// } VNode;
+
 uint32_t ravel(const Point point) { return point.c + point.r * MAP_COLUMNS; }
 
 Point unravel(const int32_t pos) {
@@ -43,7 +49,7 @@ int main() {
   uint32_t origin;
   uint32_t target;
 
-  // uint32_t nodes_to_visit = 0;
+  uint32_t nodes_to_visit = 0;
 
   // Fill array of nodes nodes and find target and origin
   // Set the wall nodes as visited
@@ -61,10 +67,9 @@ int main() {
       }
       if (type == W) {
         visited = true;
+      } else {
+        nodes_to_visit++;
       }
-      // if (!visited) {
-      //   nodes_to_visit++;
-      // }
       Point point = {.r = r, .c = c};
       Node node = {.point = point, .type = type, .visited = visited};
       nodes[counter] = node;
@@ -81,6 +86,7 @@ int main() {
                        labs(unravel(origin).c - unravel(target).c);
 
   uint32_t visited_nodes = 0;
+  bool target_found = false;
   // Loop for the algorithm
   while (1) {
     // Find unvisited node with the shortest distance
@@ -105,12 +111,21 @@ int main() {
         }
       }
     }
-    // visited_nodes++;
-    // printf("%i/%i\n", visited_nodes, nodes_to_visit);
+    visited_nodes++;
+    if (visited_nodes % 10000 == 0) {
+      printf("%i/%i\n", visited_nodes, nodes_to_visit);
+    }
     // printf("Min dist: %i\n", min_dist);
     // printf("Closest node: %i\n", closest_node_idx);
     // If there are no more nodes to visit brake while loop
-    if (!unvisited_nodes || closest_node_idx == target) {
+    if (!unvisited_nodes) {
+      printf("Target not found\n");
+      break;
+    }
+
+    if (closest_node_idx == target) {
+      target_found = true;
+      printf("Target found\n");
       break;
     }
     // Set the selected node as visited
@@ -147,12 +162,28 @@ int main() {
     // printf("-------------\n");
   }
 
-  uint32_t prev_node = previous[target];
-  while (prev_node != origin) {
-    printf("%i -> (%i,%i)\n", prev_node, unravel(prev_node).r,
-           unravel(prev_node).c);
-    prev_node = previous[prev_node];
-  }
+  // if (!target_found) {
+  //   return 0;
+  // }
+
+  // FILE *fptr;
+
+  // // use appropriate location if you are using MacOS or Linux
+  // fptr = fopen("/home/ms/Desktop/maze-main/c/result.txt", "w");
+
+  // if (fptr == NULL) {
+  //   printf("Error!");
+  //   exit(1);
+  // }
+
+  // uint32_t prev_node = previous[target];
+  // while (prev_node != origin) {
+  //   printf("%i -> (%i,%i)\n", prev_node, unravel(prev_node).r,
+  //          unravel(prev_node).c);
+  //   fprintf(fptr, "[%i,%i]\n", unravel(prev_node).r, unravel(prev_node).c);
+  //   prev_node = previous[prev_node];
+  // }
+  // fclose(fptr);
 
   return 0;
 }
