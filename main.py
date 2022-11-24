@@ -10,7 +10,8 @@ root.withdraw()
 image_path = filedialog.askopenfilename()
 root.destroy()
 
-map = image_to_array(image_path)
+map, origin, target = image_to_array(image_path)
 array_to_header(map, "c/map.h")
-os.system("cd c; make clean; make; ./main_cpp")
+os.system(
+    f"cd c; ./main_cpp {origin[0]} {origin[1]} {target[0]} {target[1]}")
 show_result("c/result.csv", image_path)

@@ -1,16 +1,9 @@
-#include "map.h"
-#include <array>
+#include <climits>
 #include <fstream>
 #include <iostream>
-#include <limits.h>
 #include <sstream>
 #include <string>
 #include <vector>
-
-#define E 0
-#define W 1
-#define O 2
-#define T 3
 
 std::vector<std::vector<uint8_t>> parse_map() {
   std::ifstream data("../map.csv");
@@ -21,7 +14,7 @@ std::vector<std::vector<uint8_t>> parse_map() {
     std::string cell;
     std::vector<uint8_t> parsedRow;
     while (std::getline(lineStream, cell, ',')) {
-      parsedRow.push_back(static_cast<uint8_t>(stoi(cell)));
+      parsedRow.push_back(static_cast<uint8_t>(std::stoi(cell)));
     }
 
     parsedCsv.push_back(parsedRow);
@@ -32,66 +25,57 @@ std::vector<std::vector<uint8_t>> parse_map() {
 
 const std::vector<std::vector<uint8_t>> map = parse_map();
 
+const uint32_t map_rows = map.size();
+const uint32_t map_cols = map[0].size();
+
 typedef struct Point {
   int32_t r;
   int32_t c;
 } Point;
 
-typedef struct Node {
-  Point point;
-  uint8_t type;
-} Node;
-
-uint32_t ravel(const Point point) { return point.c + point.r * MAP_COLUMNS; }
+uint32_t ravel(const Point point) { return point.c + point.r * map_cols; }
 
 Point unravel(const int32_t pos) {
-  int32_t r = (pos / MAP_COLUMNS);
-  int32_t c = (pos % MAP_COLUMNS);
+  int32_t r = (pos / map_cols);
+  int32_t c = (pos % map_cols);
   Point point = {.r = r, .c = c};
   return point;
 }
 
 // Declare arrays
-uint32_t distance_h[MAP_ROWS * MAP_COLUMNS];
-uint32_t distance[MAP_ROWS * MAP_COLUMNS];
-uint32_t previous[MAP_ROWS * MAP_COLUMNS];
+std::vector<uint32_t> distance_h((map_rows * map_cols), UINT32_MAX);
+std::vector<uint32_t> distance((map_rows * map_cols), UINT32_MAX);
+std::vector<uint32_t> previous((map_rows * map_cols));
+std::vector<bool> in_visit((map_rows * map_cols), false);
 
 const int8_t directions[8][2] = {{0, 1}, {1, 0},  {0, -1}, {-1, 0},
                                  {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
 const uint8_t costs[8] = {10, 10, 10, 10, 14, 14, 14, 14};
 
-int main() {
+int main(int argc, char *argv[]) {
+
+  // Process input args
+  const int32_t origin_r = std::stoi(argv[1]);
+  const int32_t origin_c = std::stoi(argv[2]);
+  const int32_t target_r = std::stoi(argv[3]);
+  const int32_t target_c = std::stoi(argv[4]);
+
+  // Define origin and target
+  const Point origin = {.r = origin_r, .c = origin_c};
+  const Point target = {.r = target_r, .c = target_c};
+  const uint32_t origin_idx = ravel(origin);
+  const uint32_t target_idx = ravel(target);
 
   bool a_star = true;
 
-  uint32_t origin;
-  uint32_t target;
-
-  // Fill arrays and find target and origin
-  uint32_t counter = 0;
-  for (uint32_t r = 0; r < MAP_ROWS; ++r) {
-    for (uint32_t c = 0; c < MAP_COLUMNS; ++c) {
-      if (map[r][c] == O) {
-        origin = counter;
-      }
-      if (map[r][c] == T) {
-        target = counter;
-      }
-      previous[counter] = 0;
-      distance[counter] = UINT32_MAX;
-      distance_h[counter] = UINT32_MAX;
-      counter++;
-    }
-  }
-
-  // Set the distance of the origin node as zero
-  distance[origin] = 0;
-  distance_h[origin] = labs(unravel(origin).r - unravel(target).r) +
-                       labs(unravel(origin).c - unravel(target).c);
+  // Set the distance of the origin node as zero or heuristic for a star
+  distance[origin_idx] = 0;
+  distance_h[origin_idx] =
+      labs(origin.r - target.r) + labs(origin.c - target.c);
 
   bool target_found = false;
-  std::vector<uint32_t> visit = {origin};
-
+  std::vector<uint32_t> visit = {origin_idx};
+  in_visit[origin_idx] = true;
   // Loop for the algorithm
   while (1) {
 
@@ -115,7 +99,7 @@ int main() {
     }
 
     // Detect if Target has been reached
-    if (closest_node_idx == target) {
+    if (closest_node_idx == target_idx) {
       target_found = true;
       std::cout << "Target found\n";
       break;
@@ -123,6 +107,7 @@ int main() {
 
     // Remove selected node from nodes to visit
     visit.erase(visit.begin() + index);
+    in_visit[index] = false;
 
     // Get neighbors
     for (uint8_t i = 0; i < 8; ++i) {
@@ -130,11 +115,9 @@ int main() {
       int32_t r = node.r + directions[i][0];
       int32_t c = node.c + directions[i][1];
       // Check if neighbor is valid
-      if (r < 0 || r >= MAP_ROWS || c < 0 || c >= MAP_COLUMNS ||
-          map[r][c] == W) {
+      if (r < 0 || r >= map_rows || c < 0 || c >= map_cols || map[r][c] == 1) {
         continue;
       }
-
       Point neighbor = {.r = r, .c = c};
       uint32_t neighbor_idx = ravel(neighbor);
       uint32_t new_dist = distance[closest_node_idx] + costs[i];
@@ -142,11 +125,14 @@ int main() {
         distance[neighbor_idx] = new_dist;
         previous[neighbor_idx] = closest_node_idx;
         if (a_star) {
-          distance_h[neighbor_idx] = new_dist + labs(r - unravel(target).r) +
-                                     labs(c - unravel(target).c);
+          distance_h[neighbor_idx] =
+              new_dist + labs(r - target.r) + labs(c - target.c);
         }
-        // Add neighbor to the nodes to visit
-        visit.push_back(neighbor_idx);
+        // Add neighbor to the nodes to visit if is not there
+        if (!in_visit[neighbor_idx]) {
+          visit.push_back(neighbor_idx);
+          in_visit[neighbor_idx] = true;
+        }
       }
     }
   }
@@ -165,8 +151,8 @@ int main() {
     exit(1);
   }
 
-  uint32_t prev_node = previous[target];
-  while (prev_node != origin) {
+  uint32_t prev_node = previous[target_idx];
+  while (prev_node != origin_idx) {
     fprintf(fptr, "%i,%i\n", unravel(prev_node).r, unravel(prev_node).c);
     prev_node = previous[prev_node];
   }

@@ -64,8 +64,8 @@ def image_to_array(path):
     global origin
     global target
 
-    map[origin[0], origin[1]] = 2
-    map[target[0], target[1]] = 3
+    # map[origin[0], origin[1]] = 2
+    # map[target[0], target[1]] = 3
     # map[1733, 55] = 2
     # map[46, 1013] = 3
 
@@ -73,7 +73,7 @@ def image_to_array(path):
         csvWriter = csv.writer(my_csv, delimiter=',')
         csvWriter.writerows(map)
 
-    return map
+    return map, origin, target
 
 
 if __name__ == "__main__":
@@ -83,5 +83,5 @@ if __name__ == "__main__":
     root.withdraw()
     file_path = filedialog.askopenfilename()
     root.destroy()
-    map = image_to_array(file_path)
+    map, origin, target = image_to_array(file_path)
     array_to_header(map, "c/map.h")
