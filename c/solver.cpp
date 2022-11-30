@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 
     // Remove selected node from nodes to visit
     visit.erase(visit.begin() + index);
-    in_visit[index] = false;
+    in_visit[closest_node_idx] = false;
 
     // Get neighbors
     for (uint8_t i = 0; i < directions.size(); ++i) {
