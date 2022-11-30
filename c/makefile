@@ -1,10 +1,10 @@
-all: main_cpp
+all: solver
 
 # main: main.c
 # 	gcc -O3 main.c -o main 
 
-main_cpp: main.cpp
-	g++ -O3 main.cpp -o main_cpp
+solver: solver.cpp
+	g++ -O3 solver.cpp utils.cpp -o solver
 
 clean:
-	rm -f main main_cpp result.csv
+	rm -f main solver result.csv
