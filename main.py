@@ -1,5 +1,5 @@
-from image_processing_tools import binarize_image, get_origin_target, image_to_mapfile, load_image
-from show_result import show_result
+from src.python.image_processing_tools import binarize_image, get_origin_target, image_to_mapfile, load_image
+from src.python.show_result import show_result
 import tkinter as tk
 from tkinter import filedialog
 import os
@@ -32,8 +32,8 @@ def main():
     if os.path.exists(result_path):
         os.remove(result_path)
 
-    os.system(
-        f"./c/solver {map_path} {result_path} {origin[0]} {origin[1]} {target[0]} {target[1]}")
+    launch_command = f"./src/c/solver {map_path} {result_path} {origin[0]} {origin[1]} {target[0]} {target[1]}"
+    os.system(launch_command)
 
     show_result(result_path, img_binarized, origin, target)
 
