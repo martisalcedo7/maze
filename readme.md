@@ -11,9 +11,9 @@
 8. Close the image and obtain the result
 
 ## Example:<br/>
-The maze we want to solve:
-<img src='docs/maze.jpg' width='100'>
-Solving process:
-![Solving process](docs/process.gif | width=100)
-Result:
-![Result](docs/result.png | width=100)
+The maze we want to solve:<br/>
+<img src='docs/maze.jpg' width='500'>
+Solving process:<br/>
+<img src='docs/process.gif' width='500'>
+Result:<br/>
+<img src='docs/result.png' width='500'>
