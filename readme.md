@@ -12,8 +12,8 @@
 
 ## Example:<br/>
 The maze we want to solve:<br/>
-<img src='docs/maze.jpg' width='500'>
+<img src='docs/maze.jpg' width='300'><br/>
 Solving process:<br/>
-<img src='docs/process.gif' width='500'>
+<img src='docs/process.gif' width='300'><br/>
 Result:<br/>
-<img src='docs/result.png' width='500'>
+<img src='docs/result.png' width='300'><br/>
