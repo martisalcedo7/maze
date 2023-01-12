@@ -12,8 +12,8 @@
 
 ## Example:<br/>
 The maze we want to solve:
-![Maze](docs/maze.jpg =250x)
+![Maze](docs/maze.jpg) { width=250 }
 Solving process:
-![Solving process](docs/process.gif =250x)
+![Solving process](docs/process.gif){ width=250 }
 Result:
-![Result](docs/result.png =250x)
+![Result](docs/result.png){ width=250 }
