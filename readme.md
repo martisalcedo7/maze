@@ -12,7 +12,7 @@
 
 ## Example:<br/>
 The maze we want to solve:
-![Maze](docs/maze.jpg | width=100)
+<img src='docs/maze.jpg' width='100'>
 Solving process:
 ![Solving process](docs/process.gif | width=100)
 Result:
