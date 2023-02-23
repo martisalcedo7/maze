@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from src.python.image_processing_tools import binarize_image, get_origin_target, image_to_mapfile, load_image
 from src.python.show_result import show_result
 import tkinter as tk
